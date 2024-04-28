@@ -1,6 +1,6 @@
 #include <ArduinoJson.h>
-// #include <TinyGPS++.h>
-// #include <SoftwareSerial.h>
+#include <TinyGPS++.h>
+#include <SoftwareSerial.h>
 #include <ESP8266WiFi.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
@@ -12,8 +12,8 @@
 #define FIREBASE_HOST "nodemcu5575-default-rtdb.asia-southeast1.firebasedatabase.app"
 #define FIREBASE_AUTH "HWrrY1F1QjJrkKZkwgQgXaCia56yK6JefnoJ6r0F"
 
-// TinyGPSPlus gps;
-// SoftwareSerial SerialGPS(4, 5);
+TinyGPSPlus gps;
+SoftwareSerial SerialGPS(4, 5);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
@@ -24,7 +24,7 @@ double speed;
 unsigned long lastTime = 0;
 unsigned long timerDelay = 60000;
 int sta;
-const int sensorPin = D5;          // Speed sensor pin
+const int sensorPin = D8;          // Speed sensor pin
 const uint8_t scl = D6, sda = D7;  // MPU6050 I2C pins
 const uint8_t buzzerPin = D3;      // Buzzer pin for acceleration spike
 
@@ -96,29 +96,28 @@ void loop() {
   epochTime = timeClient.getEpochTime();
   tt = epochTime + "000";
 
-  // if ((millis() - lastTime) > timerDelay) {       // One min time delay
-  //   pushData();
-  //   lastTime = millis();
-  // }
+  if ((millis() - lastTime) > timerDelay) {       // One min time delay
+    pushData();
+    lastTime = millis();
+  }
 
 
   /////////////////////////////////////////////////////////////
 
-  // while (SerialGPS.available() > 0)
-  //   if (gps.encode(SerialGPS.read())) {
-  //     if (gps.location.isValid()) {
-  //       Latitude = gps.location.lat();
-  //       Serial.print("Latitude : ");
-  //       Serial.println(Latitude);
-  //       Longitude = gps.location.lng();
-  //       Serial.print("Longitude : ");
-  //       Serial.println(Longitude);
-  //       Firebase.setFloat("/blackbox_values/lat", Latitude);
-  //       Firebase.setFloat("/blackbox_values/lng", Longitude);
-  //     }
-  //   }
-  Latitude = 6.819866752601754;   //replace with - Latitude
-  Longitude = 80.03957133876045;  //replace with - Longitude
+  while (SerialGPS.available() > 0)
+    if (gps.encode(SerialGPS.read())) {
+      if (gps.location.isValid()) {
+        Latitude = gps.location.lat();
+        Serial.print("Latitude : ");
+        Serial.println(Latitude);
+        Longitude = gps.location.lng();
+        Serial.print("Longitude : ");
+        Serial.println(Longitude);
+        Firebase.setFloat("/blackbox_values/lat", Latitude);
+        Firebase.setFloat("/blackbox_values/lng", Longitude);
+      }
+    }
+
   Firebase.setFloat("/blackbox_values/lat", Latitude);
   Firebase.setFloat("/blackbox_values/lng", Longitude);
 
